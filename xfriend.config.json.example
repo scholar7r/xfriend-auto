@@ -1,0 +1,16 @@
+[
+    {
+        "enabled": true,
+        "phoneNumber": "",
+        "cipherWord": "",
+        "location": "",
+        "deviceName": ""
+    },
+    {
+        "enabled": false,
+        "phoneNumber": "",
+        "cipherWord": "",
+        "location": "",
+        "deviceName": ""
+    }
+]

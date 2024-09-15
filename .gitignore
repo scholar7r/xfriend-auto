@@ -2,3 +2,5 @@
 .idea/
 node_modules/
 logs/
+
+xfriend.config.json
