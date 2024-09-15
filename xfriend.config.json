@@ -1,0 +1,16 @@
+[
+    {
+        "enabled": true,
+        "phoneNumber": "13593890562",
+        "cipherWord": "qq840819",
+        "location": "114.309473,29.815692",
+        "deviceName": "Vivo S18 Pro"
+    },
+    {
+        "enabled": false,
+        "phoneNumber": "18571114838",
+        "cipherWord": "wwy050502",
+        "location": "114.309473,29.815692",
+        "deviceName": "Vivo S17e"
+    }
+]

@@ -1,0 +1,23 @@
+{
+    "name": "xfriend-auto",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.js",
+    "scripts": {
+        "dev": "ts-node ./src/main.ts"
+    },
+    "keywords": [],
+    "author": "scholar7r <scholar7r@outlook.com>",
+    "license": "ISC",
+    "devDependencies": {
+        "ts-node": "^10.9.2",
+        "tslib": "^2.7.0",
+        "typescript": "^5.5.4"
+    },
+    "dependencies": {
+        "@types/node": "^22.5.0",
+        "axios": "^1.7.4",
+        "winston": "^3.14.2",
+        "winston-daily-rotate-file": "^5.0.0"
+    }
+}
