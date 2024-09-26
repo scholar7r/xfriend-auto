@@ -11,6 +11,7 @@ const logger = LoggerFactory('Main')
 
 interface UserProfile {
     enabled: boolean
+    enableForceClock: boolean
     phoneNumber: string
     cipherWord: string
     location: string
@@ -25,9 +26,6 @@ const main = async () => {
     const userProfiles: UserProfile[] = readFile(
         CONFIGURATION_FILE
     ) as UserProfile[]
-
-    // 向 Debug 日志中输出所有用户信息（不安全）
-    // console.debug(userProfiles)
 
     // 遍历 userProfiles 进行用户操作
     for (const userProfile of userProfiles) {
@@ -122,17 +120,14 @@ const main = async () => {
                     headers: { cookie, ...mstv(clockForm) },
                     params: { ...clockForm },
                 })
-
-                const { data, msg } = clockResult
-                const { startTraineeDayNum, startDayNum } = data
-                logger.debug(
-                    `签到结果：${msg} [${startTraineeDayNum} / ${startDayNum}]`
-                )
+                const { msg } = clockResult
+                logger.debug(msg)
             } else {
                 logger.info(`今日已签到`)
             }
 
             // 查询签到历史信息形成当月预览矩阵
+            const currentMonth = currentDate('-', DateLevel.MONTH)
             const clockHistory = await request(
                 'traineePlatform',
                 'clockHistory',
@@ -140,13 +135,16 @@ const main = async () => {
                     headers: { cookie },
                     params: {
                         traineeId,
-                        months: currentDate('-', DateLevel.MONTH),
+                        months: currentMonth,
                     },
                 }
             )
 
+            const [daysInMonth, clockedDays, clockHistoryCalendar] = calendar(
+                clockHistory.data.clockHistoryList
+            )
             logger.info(
-                `当前月份签到历史\n${calendar(clockHistory.data.clockHistoryList)}`
+                `${loginer} ${currentMonth} 月的签到历史\n[${clockedDays} / ${daysInMonth}]\n${clockHistoryCalendar}\n`
             )
         } else {
             logger.warn(`用户未开启签到`)

@@ -27,11 +27,19 @@ const webApiUrls: WebApiUrls = {
             location: 'v3/geocode/regeo',
         },
     },
+    qmsg: {
+        base: 'https://qmsg.zendee.cn/',
+        urls: {
+            send: 'jsend',
+            sendGroup: 'jgroup',
+        },
+    },
 }
 
 export const selectUrl = (
     codeName: keyof WebApiUrls,
-    urlName: string
+    urlName: string,
+    apiKey?: string
 ): string => {
     const service = webApiUrls[codeName]
 
@@ -43,16 +51,27 @@ export const selectUrl = (
         throw new Error(`在 ${codeName} 中未定义 ${urlName} 接口`)
     }
 
+    if (codeName === 'qmsg' && apiKey) {
+        return `${service.base}${service.urls[urlName]}/${apiKey}`
+    } else if (codeName === 'qmsg' && !apiKey) {
+        throw new Error(`调用 ${codeName} 服务需要提供 apiKey`)
+    }
+
     return `${service.base}${service.urls[urlName]}`
 }
 
 export const request = (
     codeName: keyof WebApiUrls,
     urlName: string,
-    axiosConfig?: AxiosRequestConfig
+    axiosConfig?: AxiosRequestConfig,
+    apiKey?: string
 ): Promise<any> => {
     return new Promise((resolve, reject) => {
-        const url = selectUrl(codeName, urlName)
+        if (codeName === 'qmsg' && !apiKey) {
+            reject(new Error(`调用 ${codeName} 服务需要提供 apiKey`))
+        }
+
+        const url = selectUrl(codeName, urlName, apiKey)
 
         axios({
             ...axiosConfig,
@@ -65,6 +84,8 @@ export const request = (
                 const errorMessage = error.response
                     ? `请求失败: ${error.response.status} ${error.response.statusText} - ${error.response.data}`
                     : `请求失败: ${error.message}`
+
+                // console.error(error.response.data)
 
                 reject(new Error(errorMessage))
             })
