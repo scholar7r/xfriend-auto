@@ -18,8 +18,11 @@ const fileFormatWithLabel = (label: string) => {
     return format.combine(
         format.label({ label }),
         format.timestamp({ format: 'YYYY-MM-DD hh:mm:ss' }),
-        format.json(),
-        format.prettyPrint()
+        format.printf(({ level, message, timestamp, stack }) => {
+            return `${timestamp} ${level} [${label}] ${message} ${
+                stack ? stack : ''
+            }`
+        })
     )
 }
 
@@ -31,14 +34,13 @@ const LoggerFactory = (label: string) => {
 
     logger = createLogger({
         level: 'debug',
-
         transports: [
             new transports.Console({
                 format: formatWithLabel(label),
             }),
             new transports.DailyRotateFile({
                 format: fileFormatWithLabel(label),
-                level: 'info',
+                level: 'debug',
                 filename: './logs/xfriend-auto-%DATE%.log',
                 datePattern: 'YYYY-MM-DD-HH',
                 maxSize: '20m',

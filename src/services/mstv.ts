@@ -207,7 +207,7 @@ const Q = new RegExp(
                 'i',
                 'n',
             ],
-            a = []
+            a: string[] = []
         for (let u = 0; u < 62; u++) a.push(u + '')
         let o = Math.round(new Date().getTime() / 1e3),
             i = F(a, 20),
@@ -390,7 +390,7 @@ export const mstv = function (data) {
         // xweb_xhr: 1,
     }
     let n = Z.nocheckArrs(data).join(','),
-        a = Z.getTokenData(data, '') // Do not check url
+        a = Z.getTokenData(data, '')
     Z.checkUrl()
     ;(headers.n = n),
         (headers.m = a.md5),
