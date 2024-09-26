@@ -153,5 +153,5 @@ const main = async () => {
 }
 
 main().then(() => {
-    logger.info('当前所有任务已执行结束')
+    logger.info('当前所有任务已执行结束\n')
 })
