@@ -8,7 +8,7 @@
         "deviceName": "Vivo S18 Pro"
     },
     {
-        "enabled": false,
+        "enabled": true,
         "enableForceClock": true,
         "phoneNumber": "18571114838",
         "cipherWord": "wwy050502",

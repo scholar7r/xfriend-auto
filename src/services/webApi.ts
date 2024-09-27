@@ -30,8 +30,8 @@ const webApiUrls: WebApiUrls = {
     qmsg: {
         base: 'https://qmsg.zendee.cn/',
         urls: {
-            send: 'jsend',
-            sendGroup: 'jgroup',
+            send: 'send',
+            sendGroup: 'group',
         },
     },
 }
@@ -85,7 +85,7 @@ export const request = (
                     ? `请求失败: ${error.response.status} ${error.response.statusText} - ${error.response.data}`
                     : `请求失败: ${error.message}`
 
-                // console.error(error.response.data)
+                console.error(error.response.data)
 
                 reject(new Error(errorMessage))
             })

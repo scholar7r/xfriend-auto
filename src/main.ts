@@ -5,6 +5,7 @@ import { request } from './services/webApi'
 import { mstv } from './services/mstv'
 import { currentDate, DateLevel } from './utilities/currentDate'
 import { calendar } from './services/calendar'
+import { resolve } from 'path'
 
 const CONFIGURATION_FILE = '../../xfriend.config.json'
 const logger = LoggerFactory('Main')
@@ -144,8 +145,30 @@ const main = async () => {
                 clockHistory.data.clockHistoryList
             )
             logger.info(
-                `${loginer} ${currentMonth} 月的签到历史\n[${clockedDays} / ${daysInMonth}]\n${clockHistoryCalendar}\n`
+                `${loginer} ${currentMonth} 月的签到历史\n[${clockedDays} / ${daysInMonth}]\n${clockHistoryCalendar}`
             )
+
+            async function sendMessage() {
+                await new Promise(resolve => setTimeout(resolve, 5000))
+                const { success } = await request(
+                    'qmsg',
+                    'send',
+                    {
+                        params: {
+                            msg: `${loginer} (${clockedDays} / ${daysInMonth})\n${clockHistoryCalendar}`,
+                        },
+                    },
+                    'b908c85a410b8e262ae6788e17544a88'
+                )
+                if (success) {
+                    logger.info(`发信成功`)
+                } else {
+                    logger.info(`发信失败`)
+                }
+            }
+            await sendMessage()
+
+            logger.info(`${loginer}签到任务执行完成\n`)
         } else {
             logger.warn(`用户未开启签到`)
         }
