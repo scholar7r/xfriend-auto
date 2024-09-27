@@ -5,7 +5,8 @@ import { request } from './services/webApi'
 import { mstv } from './services/mstv'
 import { currentDate, DateLevel } from './utilities/currentDate'
 import { calendar } from './services/calendar'
-import { resolve } from 'path'
+import { Account } from './domains/account'
+import { ClockForm } from './domains/clockForm'
 
 const CONFIGURATION_FILE = '../../xfriend.config.json'
 const logger = LoggerFactory('Main')
@@ -30,7 +31,7 @@ const main = async () => {
 
     // 遍历 userProfiles 进行用户操作
     for (const userProfile of userProfiles) {
-        // 登录获取 sessionId 和 loginerId
+        // 登录获取 sessionId
         const account = await request('traineePlatform', 'accountLogin', {
             params: {
                 username: userProfile.phoneNumber,
@@ -39,9 +40,8 @@ const main = async () => {
                     .digest('hex'),
             },
         })
-        const { sessionId, loginerId } = account.data
+        const { sessionId } = account.data
 
-        logger.debug(`获取到用户的 Loginer 标识符为: ${loginerId}`)
         logger.debug(`获取到用户的 Session 标识符为: ${sessionId}`)
 
         // 根据获取的 sessionId 拼接 cookie
@@ -102,7 +102,7 @@ const main = async () => {
                 const [lng, lat] = userProfile.location.split(',').map(Number)
 
                 // 签到表单
-                const clockForm = {
+                const clockForm: ClockForm = {
                     traineeId,
                     adcode,
                     lat,
@@ -148,8 +148,9 @@ const main = async () => {
                 `${loginer} ${currentMonth} 月的签到历史\n[${clockedDays} / ${daysInMonth}]\n${clockHistoryCalendar}`
             )
 
+            // TODO: 所有信息应该聚合到一个数组中，并且进行一次性发送，且每条信息五秒间隔
             async function sendMessage() {
-                await new Promise(resolve => setTimeout(resolve, 5000))
+                await new Promise(resolve => setTimeout(resolve, 6000))
                 const { success } = await request(
                     'qmsg',
                     'send',
