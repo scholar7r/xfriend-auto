@@ -74,10 +74,12 @@ const main = async () => {
                     },
                 }
             )
+
+            // BUG: 用 inTime 判断是否签到和下面的签到接口返回内容判断是否签到重叠
             const { clockInfo } = clockDetail.data
             // 通过 clockInfo 中的 inTime 字段判断今日是否已签到
-            const inTime = clockInfo || ''
-            if (!!inTime) {
+            const { inTime } = clockInfo || ''
+            if (!inTime) {
                 // 解析 location 经纬度
                 const location = await request('map', 'location', {
                     params: {
