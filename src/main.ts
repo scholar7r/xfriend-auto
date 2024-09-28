@@ -1,10 +1,10 @@
 import { createHash } from 'crypto'
 import { readFile } from './services/file'
 import { LoggerFactory } from './services/logger'
-import { request } from './services/webApi'
+import { request, RequestResponse } from './services/webApi'
 import { mstv } from './services/mstv'
 import { currentDate, DateLevel } from './utilities/currentDate'
-import { calendar } from './services/calendar'
+import { calendar, ClockHistoryEntry } from './services/calendar'
 import { ClockFormType } from './domains/clockForm'
 import { GlobalSettingsType, UserProfileType } from './domains/userProfile'
 
@@ -28,14 +28,18 @@ const main = async () => {
     // 遍历 userProfiles 进行用户操作
     for (const userProfile of userProfiles) {
         // 登录获取 sessionId
-        const account = await request('traineePlatform', 'accountLogin', {
-            params: {
-                username: userProfile.phoneNumber,
-                password: createHash('md5')
-                    .update(userProfile.cipherWord)
-                    .digest('hex'),
-            },
-        })
+        const account: RequestResponse<{ sessionId: string }> = await request(
+            'traineePlatform',
+            'accountLogin',
+            {
+                params: {
+                    username: userProfile.phoneNumber,
+                    password: createHash('md5')
+                        .update(userProfile.cipherWord)
+                        .digest('hex'),
+                },
+            }
+        )
         const { sessionId } = account.data
 
         logger.debug(`获取到用户的 Session 标识符为: ${sessionId}`)
@@ -44,13 +48,10 @@ const main = async () => {
         const cookie = `JSESSIONID=${sessionId}`
 
         // 查询用户信息获取 loginer
-        const accountDetail = await request(
-            'traineePlatform',
-            'accountDetail',
-            {
+        const accountDetail: RequestResponse<{ loginer: string }> =
+            await request('traineePlatform', 'accountDetail', {
                 headers: { cookie },
-            }
-        )
+            })
         const { loginer } = accountDetail.data
 
         logger.debug(`获取到用户的用户名为: ${loginer}`)
@@ -59,40 +60,46 @@ const main = async () => {
         const isClockEnabled = userProfile.enabled || false
         if (isClockEnabled) {
             // 获取默认签到的 traineeId
-            const clock = await request('traineePlatform', 'clockDefault', {
-                headers: { cookie },
-            })
+            const clock: RequestResponse<{ clockVo: { traineeId: string } }> =
+                await request('traineePlatform', 'clockDefault', {
+                    headers: { cookie },
+                })
             const { traineeId } = clock.data.clockVo
             logger.debug(`获取到默认签到的 traineeId 为: ${traineeId}`)
 
             // 获取默认签到的 postInfo
-            const clockDetail = await request(
-                'traineePlatform',
-                'clockDetail',
-                {
-                    headers: { cookie },
-                    params: {
-                        traineeId,
-                    },
-                }
-            )
+            const clockDetail: RequestResponse<{
+                clockInfo: { inTime: string }
+            }> = await request('traineePlatform', 'clockDetail', {
+                headers: { cookie },
+                params: {
+                    traineeId,
+                },
+            })
 
             // 通过 clockInfo 中的 inTime 字段判断今日是否已签到
             const { inTime } = clockDetail.data.clockInfo || null
 
             // 解析 location 经纬度
-            const location = await request('map', 'location', {
+            const location: RequestResponse<{
+                regeocode: {
+                    formatted_address: string
+                    addressComponent: { adcode: string }
+                }
+            }> = await request('map', 'location', {
                 params: {
                     key: globalSettings.apiKeys.map,
                     location: userProfile.location,
                     s: 'rsx',
                 },
             })
-            const [address, adcode] = [
-                location.regeocode.formatted_address,
-                location.regeocode.addressComponent.adcode,
-            ]
-            logger.debug(`经纬度解析地址为: ${address}, 邮编为: ${adcode}`)
+            const { regeocode } = location
+            const formatted_address = regeocode?.formatted_address
+            const addressComponent = regeocode?.addressComponent
+            const adcode = addressComponent?.adcode
+            logger.debug(
+                `经纬度解析地址为: ${formatted_address}, 邮编为: ${adcode}`
+            )
 
             // 分离经纬度
             const [lng, lat] = userProfile.location.split(',').map(Number)
@@ -100,10 +107,10 @@ const main = async () => {
             // 签到表单
             const clockForm: ClockFormType = {
                 traineeId,
-                adcode,
+                adcode: adcode || '',
                 lat,
                 lng,
-                address,
+                address: formatted_address || '',
                 deviceName: userProfile.deviceName,
                 punchInStatus: '1',
                 clockStatus: '2', // 1 为签退，2 为签到
@@ -113,11 +120,15 @@ const main = async () => {
             }
 
             // 进行签到
-            const clockResult = await request('traineePlatform', 'clock', {
-                headers: { cookie, ...mstv(clockForm) },
-                params: { ...clockForm },
-            })
-            const { msg } = clockResult
+            const clockResult: RequestResponse<{ msg: string }> = await request(
+                'traineePlatform',
+                'clock',
+                {
+                    headers: { cookie, ...mstv(clockForm) },
+                    params: { ...clockForm },
+                }
+            )
+            const msg = clockResult.msg
 
             // 当 enableForceClock 启用时进行重新签到
             if (msg === 'success') {
@@ -125,15 +136,12 @@ const main = async () => {
             } else if (msg === '已经签到' && userProfile.enableForceClock) {
                 logger.info(`重新签到已启用，正在重新签到`)
 
-                const forceClockResult = await request(
-                    'traineePlatform',
-                    'clockUpdate',
-                    {
+                const forceClockResult: RequestResponse<{ msg: string }> =
+                    await request('traineePlatform', 'clockUpdate', {
                         headers: { cookie, ...mstv(clockForm) },
                         params: { ...clockForm },
-                    }
-                )
-                const { msg } = forceClockResult
+                    })
+                const msg = forceClockResult.msg
 
                 if (msg === 'success') {
                     logger.info(`重新签到成功`)
@@ -146,17 +154,15 @@ const main = async () => {
 
             // 查询签到历史信息形成当月预览矩阵
             const currentMonth = currentDate('-', DateLevel.MONTH)
-            const clockHistory = await request(
-                'traineePlatform',
-                'clockHistory',
-                {
-                    headers: { cookie },
-                    params: {
-                        traineeId,
-                        months: currentMonth,
-                    },
-                }
-            )
+            const clockHistory: RequestResponse<{
+                clockHistoryList: ClockHistoryEntry[]
+            }> = await request('traineePlatform', 'clockHistory', {
+                headers: { cookie },
+                params: {
+                    traineeId,
+                    months: currentMonth,
+                },
+            })
 
             const [daysInMonth, clockedDays, clockHistoryCalendar] = calendar(
                 clockHistory.data.clockHistoryList
@@ -180,16 +186,17 @@ const main = async () => {
             await new Promise(resolve => setTimeout(resolve, 5500))
         }
         const message = messages[i]
-        const { success } = await request(
-            'qmsg',
-            'send',
-            {
-                params: {
-                    msg: message,
+        const { success }: RequestResponse<{ success: boolean }> =
+            await request(
+                'qmsg',
+                'send',
+                {
+                    params: {
+                        msg: message,
+                    },
                 },
-            },
-            globalSettings.apiKeys.qmsg
-        )
+                globalSettings.apiKeys.qmsg
+            )
         if (success) {
             logger.info(`信息 ${i + 1} 发信状态: 发信成功`)
         } else {

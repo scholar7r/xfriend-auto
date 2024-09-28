@@ -1,6 +1,6 @@
 export interface ClockFormType {
-    traineeId: number
-    adcode: number
+    traineeId: string
+    adcode: string
     lat: number
     lng: number
     address: string

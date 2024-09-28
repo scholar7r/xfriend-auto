@@ -9,6 +9,19 @@ interface WebApiUrls {
     [key: string]: Urls
 }
 
+export interface RequestResponse<T> {
+    data: T
+    success: boolean
+    error?: string
+    regeocode?: {
+        formatted_address: string
+        addressComponent: {
+            adcode: string
+        }
+    }
+    msg?: string
+}
+
 const webApiUrls: WebApiUrls = {
     traineePlatform: {
         base: 'https://xcx.xybsyw.com/',
@@ -61,12 +74,12 @@ export const selectUrl = (
     return `${service.base}${service.urls[urlName]}`
 }
 
-export const request = (
+export const request = <T>(
     codeName: keyof WebApiUrls,
     urlName: string,
     axiosConfig?: AxiosRequestConfig,
     apiKey?: string
-): Promise<any> => {
+): Promise<T> => {
     return new Promise((resolve, reject) => {
         if (codeName === 'qmsg' && !apiKey) {
             reject(new Error(`调用 ${codeName} 服务需要提供 apiKey`))

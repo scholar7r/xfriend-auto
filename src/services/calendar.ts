@@ -1,4 +1,4 @@
-interface ClockHistoryEntry {
+export interface ClockHistoryEntry {
     clockCostHours: number
     clockCostMinutes: number
     clockDate: string // 格式 'YYYY-MM-DD'

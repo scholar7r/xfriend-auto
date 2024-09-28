@@ -4,7 +4,7 @@ const Q = new RegExp(
         "[`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]"
     ),
     W = e => {
-        let t = [
+        const t = [
                 '`',
                 '~',
                 '!',
@@ -100,19 +100,17 @@ const Q = new RegExp(
                 'clockDeviceToken',
                 'clockDevice',
             ]
-        for (var a in e) {
-            //!(过滤的字段 ||  特殊字符）不添加到字符串中
-            let o = e[a] + ''
-            o &&
-                o.split('').some((e, o) => {
-                    if (t.indexOf(e) > -1)
-                        return -1 == n.indexOf(a) && n.push(a), !0
-                })
+        for (const a in e) {
+            const o = String(e[a])
+            o.split('').some(e => {
+                if (t.indexOf(e) > -1)
+                    return -1 == n.indexOf(a) && n.push(a), !0
+            })
         }
         return n
     },
     V = () => {
-        let e = [
+        const e = [
             'front/enterprise/loadEnterprise.action',
             'front/post/EnterprisePostLoad.action',
             'helpcenter/video/VideoPlayAuth.action',
@@ -130,7 +128,7 @@ const Q = new RegExp(
     },
     F = (e, t) => {
         //生成(e.length - t)个随机排序的数字
-        var n,
+        let n,
             a,
             o = e.slice(0),
             i = e.length,
@@ -143,7 +141,7 @@ const Q = new RegExp(
         return o.slice(r)
     },
     H = (e, t) => {
-        let n = [
+        const n = [
                 '5',
                 'b',
                 'f',
@@ -215,11 +213,11 @@ const Q = new RegExp(
         i.forEach((e, t) => {
             r += n[e]
         })
-        let s = z(e)
-        var c = ''
+        const s = z(e)
+        let c = ''
         //!(过滤的字段 ||  特殊字符）不添加到字符串中  过滤 &nbsp;
         // 过滤出参与加密的字段
-        for (var l in s) {
+        for (const l in s) {
             ;-1 != W(e).indexOf(l) ||
                 Q.test(s[l]) ||
                 (null != s[l] && '' !== s[l] && '""' !== s[l] && (c += s[l]))
@@ -316,7 +314,7 @@ const Q = new RegExp(
         o.forEach((e, t) => {
             i += n[e]
         })
-        var r = ''
+        let r = ''
         return (
             (r += a),
             (r += i),
@@ -341,9 +339,9 @@ const t = {
                 (document.cookie = e + '=' + t + ';expires=' + a)
         },
         get(e) {
-            let t = document.cookie.replace(/\s/g, '').split(';')
+            const t = document.cookie.replace(/\s/g, '').split(';')
             for (let n = 0; n < t.length; n++) {
-                let a = t[n].split('=')
+                const a = t[n].split('=')
                 if (a[0] === e) return decodeURIComponent(a[1])
             }
             return ''
@@ -352,16 +350,16 @@ const t = {
             this.set(e, '1', -1)
         },
         getAll() {
-            let e = document.cookie.split(';'),
+            const e = document.cookie.split(';'),
                 t = {}
             for (let n = 0; n < e.length; n++) {
-                let a = e[n].split('')
+                const a = e[n].split('')
                 t[a[0]] = unescape(a[1])
             }
             return t
         },
         clear() {
-            let e = document.cookie.match(/[^ =;]+(?=\=)/g)
+            const e = document.cookie.match(/[^ =;]+(?=\=)/g)
             if (e)
                 for (let t = e.length; t--; )
                     document.cookie =
@@ -377,7 +375,7 @@ const Z = {
 }
 
 export const mstv = function (data) {
-    let headers: any = {
+    const headers: any = {
         Host: 'xcx.xybsyw.com',
         Connection: 'keep-alive',
         'User-agent':
@@ -389,7 +387,7 @@ export const mstv = function (data) {
         v: '1.6.36',
         // xweb_xhr: 1,
     }
-    let n = Z.nocheckArrs(data).join(','),
+    const n = Z.nocheckArrs(data).join(','),
         a = Z.getTokenData(data, '')
     Z.checkUrl()
     ;(headers.n = n),
