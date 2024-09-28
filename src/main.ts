@@ -116,7 +116,31 @@ const main = async () => {
                     params: { ...clockForm },
                 })
                 const { msg } = clockResult
-                logger.debug(msg)
+
+                // 当 enableForceClock 启用时进行重新签到
+                if (msg === 'success') {
+                    logger.info(`签到成功`)
+                } else if (msg === '已经签到' && userProfile.enableForceClock) {
+                    logger.info(`重新签到已启用，正在重新签到`)
+
+                    const forceClockResult = await request(
+                        'traineePlatform',
+                        'clockUpdate',
+                        {
+                            headers: { cookie, ...mstv(clockForm) },
+                            params: { ...clockForm },
+                        }
+                    )
+                    const { msg } = forceClockResult
+
+                    if (msg === 'success') {
+                        logger.info(`重新签到成功`)
+                    } else {
+                        logger.error(`签到失败`)
+                    }
+                } else {
+                    logger.error(`签到失败 - ${msg}`)
+                }
             } else {
                 logger.info(`今日已签到`)
             }
@@ -166,7 +190,7 @@ const main = async () => {
             'b908c85a410b8e262ae6788e17544a88'
         )
         if (success) {
-            logger.info(`发信成功`)
+            logger.info(`信息 ${i + 1} 发信状态: 发信成功`)
         } else {
             logger.info(`发信失败`)
         }

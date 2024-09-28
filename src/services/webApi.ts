@@ -19,6 +19,7 @@ const webApiUrls: WebApiUrls = {
             clockDetail: 'student/clock/GetPlan!detail.action',
             clock: 'student/clock/PostNew.action',
             clockHistory: 'student/clock/PunchIn!historyList.action',
+            clockUpdate: 'student/clock/Post!updateClock.action',
         },
     },
     map: {
