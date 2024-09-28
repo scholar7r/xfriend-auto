@@ -1,6 +1,5 @@
-.8685dd0c083da8e6e436e657cf69b9d40ad13e7a-audit.json
 .idea/
 node_modules/
 logs/
 
-xfriend.config.json
+./xfriend.config.json
