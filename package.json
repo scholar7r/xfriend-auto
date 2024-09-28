@@ -5,7 +5,11 @@
     "main": "main.js",
     "scripts": {
         "dev": "ts-node ./src/main.ts",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "fixLint": "eslint . --fix",
+        "build": "tsc",
+        "start": "node ./dist/main.js",
+        "clean": "rm ./dist/ -r"
     },
     "keywords": [],
     "author": "scholar7r <scholar7r@outlook.com>",
