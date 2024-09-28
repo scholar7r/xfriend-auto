@@ -9,7 +9,7 @@
     },
     {
         "enabled": true,
-        "enableForceClock": true,
+        "enableForceClock": false,
         "phoneNumber": "18571114838",
         "cipherWord": "wwy050502",
         "location": "114.309473,29.815692",

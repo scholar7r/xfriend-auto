@@ -5,7 +5,7 @@ import { request } from './services/webApi'
 import { mstv } from './services/mstv'
 import { currentDate, DateLevel } from './utilities/currentDate'
 import { calendar } from './services/calendar'
-import { ClockForm } from './domains/clockForm'
+import { ClockFormType } from './domains/clockForm'
 import { UserProfileType } from './domains/userProfile'
 
 const CONFIGURATION_FILE = '../../xfriend.config.json'
@@ -75,76 +75,71 @@ const main = async () => {
                 }
             )
 
-            // BUG: 用 inTime 判断是否签到和下面的签到接口返回内容判断是否签到重叠
-            const { clockInfo } = clockDetail.data
             // 通过 clockInfo 中的 inTime 字段判断今日是否已签到
-            const { inTime } = clockInfo || ''
-            if (!inTime) {
-                // 解析 location 经纬度
-                const location = await request('map', 'location', {
-                    params: {
-                        key: 'c222383ff12d31b556c3ad6145bb95f4',
-                        location: userProfile.location,
-                        s: 'rsx',
-                    },
-                })
-                const [address, adcode] = [
-                    location.regeocode.formatted_address,
-                    location.regeocode.addressComponent.adcode,
-                ]
-                logger.debug(`经纬度解析地址为: ${address}, 邮编为: ${adcode}`)
+            const { inTime } = clockDetail.data.clockInfo || null
 
-                // 分离经纬度
-                const [lng, lat] = userProfile.location.split(',').map(Number)
+            // 解析 location 经纬度
+            const location = await request('map', 'location', {
+                params: {
+                    key: 'c222383ff12d31b556c3ad6145bb95f4',
+                    location: userProfile.location,
+                    s: 'rsx',
+                },
+            })
+            const [address, adcode] = [
+                location.regeocode.formatted_address,
+                location.regeocode.addressComponent.adcode,
+            ]
+            logger.debug(`经纬度解析地址为: ${address}, 邮编为: ${adcode}`)
 
-                // 签到表单
-                const clockForm: ClockForm = {
-                    traineeId,
-                    adcode,
-                    lat,
-                    lng,
-                    address,
-                    deviceName: userProfile.deviceName,
-                    punchInStatus: '1',
-                    clockStatus: '2', // 1 为签退，2 为签到
-                    addressId: null,
-                    imgUrl: '',
-                    reason: '',
-                }
+            // 分离经纬度
+            const [lng, lat] = userProfile.location.split(',').map(Number)
 
-                // 进行签到
-                const clockResult = await request('traineePlatform', 'clock', {
-                    headers: { cookie, ...mstv(clockForm) },
-                    params: { ...clockForm },
-                })
-                const { msg } = clockResult
+            // 签到表单
+            const clockForm: ClockFormType = {
+                traineeId,
+                adcode,
+                lat,
+                lng,
+                address,
+                deviceName: userProfile.deviceName,
+                punchInStatus: '1',
+                clockStatus: '2', // 1 为签退，2 为签到
+                addressId: null,
+                imgUrl: '',
+                reason: '',
+            }
 
-                // 当 enableForceClock 启用时进行重新签到
-                if (msg === 'success') {
-                    logger.info(`签到成功`)
-                } else if (msg === '已经签到' && userProfile.enableForceClock) {
-                    logger.info(`重新签到已启用，正在重新签到`)
+            // 进行签到
+            const clockResult = await request('traineePlatform', 'clock', {
+                headers: { cookie, ...mstv(clockForm) },
+                params: { ...clockForm },
+            })
+            const { msg } = clockResult
 
-                    const forceClockResult = await request(
-                        'traineePlatform',
-                        'clockUpdate',
-                        {
-                            headers: { cookie, ...mstv(clockForm) },
-                            params: { ...clockForm },
-                        }
-                    )
-                    const { msg } = forceClockResult
+            // 当 enableForceClock 启用时进行重新签到
+            if (msg === 'success') {
+                logger.info(`签到成功`)
+            } else if (msg === '已经签到' && userProfile.enableForceClock) {
+                logger.info(`重新签到已启用，正在重新签到`)
 
-                    if (msg === 'success') {
-                        logger.info(`重新签到成功`)
-                    } else {
-                        logger.error(`签到失败`)
+                const forceClockResult = await request(
+                    'traineePlatform',
+                    'clockUpdate',
+                    {
+                        headers: { cookie, ...mstv(clockForm) },
+                        params: { ...clockForm },
                     }
+                )
+                const { msg } = forceClockResult
+
+                if (msg === 'success') {
+                    logger.info(`重新签到成功`)
                 } else {
-                    logger.error(`签到失败 - ${msg}`)
+                    logger.error(`签到失败`)
                 }
             } else {
-                logger.info(`今日已签到`)
+                logger.warn(`已于 ${inTime} 已签到，无需再次签到`)
             }
 
             // 查询签到历史信息形成当月预览矩阵
@@ -176,7 +171,9 @@ const main = async () => {
         }
     }
 
+    // 发送签到完成通知信息
     for (let i = 0; i < messages.length; i++) {
+        // 首次发送信息不需要延迟，Qmsg 限制了每次请求需要延迟 5 秒
         if (i > 0) {
             await new Promise(resolve => setTimeout(resolve, 5500))
         }

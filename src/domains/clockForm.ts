@@ -1,4 +1,4 @@
-export interface ClockForm {
+export interface ClockFormType {
     traineeId: number
     adcode: number
     lat: number
