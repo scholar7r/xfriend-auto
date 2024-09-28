@@ -166,9 +166,9 @@ const main = async () => {
             'b908c85a410b8e262ae6788e17544a88'
         )
         if (success) {
-            logger.info(`发信成功: ${message}`)
+            logger.info(`发信成功`)
         } else {
-            logger.info(`发信失败: ${message}`)
+            logger.info(`发信失败`)
         }
     }
 }
