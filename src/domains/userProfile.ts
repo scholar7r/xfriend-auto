@@ -6,3 +6,10 @@ export interface UserProfileType {
     location: string
     deviceName: string
 }
+
+export interface GlobalSettingsType {
+    apiKeys: {
+        map: string
+        qmsg: string
+    }
+}

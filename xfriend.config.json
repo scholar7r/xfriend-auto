@@ -1,18 +1,26 @@
-[
-    {
-        "enabled": true,
-        "enableForceClock": true,
-        "phoneNumber": "13593890562",
-        "cipherWord": "qq840819",
-        "location": "114.309473,29.815692",
-        "deviceName": "Vivo S18 Pro"
-    },
-    {
-        "enabled": true,
-        "enableForceClock": false,
-        "phoneNumber": "18571114838",
-        "cipherWord": "wwy050502",
-        "location": "114.309473,29.815692",
-        "deviceName": "Vivo S17e"
+{
+    "userProfiles": [
+        {
+            "enabled": true,
+            "enableForceClock": true,
+            "phoneNumber": "13593890562",
+            "cipherWord": "qq840819",
+            "location": "114.309473,29.815692",
+            "deviceName": "Vivo S18 Pro"
+        },
+        {
+            "enabled": true,
+            "enableForceClock": false,
+            "phoneNumber": "18571114838",
+            "cipherWord": "wwy050502",
+            "location": "114.309473,29.815692",
+            "deviceName": "Vivo S17e"
+        }
+    ],
+    "globalSettings": {
+        "apiKeys": {
+            "map": "c222383ff12d31b556c3ad6145bb95f4",
+            "qmsg": "b908c85a410b8e262ae6788e17544a88"
+        }
     }
-]
+}

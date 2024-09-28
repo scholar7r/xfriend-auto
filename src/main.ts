@@ -6,7 +6,7 @@ import { mstv } from './services/mstv'
 import { currentDate, DateLevel } from './utilities/currentDate'
 import { calendar } from './services/calendar'
 import { ClockFormType } from './domains/clockForm'
-import { UserProfileType } from './domains/userProfile'
+import { GlobalSettingsType, UserProfileType } from './domains/userProfile'
 
 const CONFIGURATION_FILE = '../../xfriend.config.json'
 const logger = LoggerFactory('Main')
@@ -16,9 +16,11 @@ const main = async () => {
     logger.info(`XFriend Auto 服务启动`)
 
     // 获取 CONFIGURATION_FILE 中定义的配置
-    const userProfiles: UserProfileType[] = readFile(
-        CONFIGURATION_FILE
-    ) as UserProfileType[]
+    const configuration = readFile(CONFIGURATION_FILE)
+    const [userProfiles, globalSettings]: [
+        UserProfileType[],
+        GlobalSettingsType,
+    ] = configuration as [UserProfileType[], GlobalSettingsType]
 
     // 所有推送信息
     const messages: string[] = []
@@ -81,7 +83,7 @@ const main = async () => {
             // 解析 location 经纬度
             const location = await request('map', 'location', {
                 params: {
-                    key: 'c222383ff12d31b556c3ad6145bb95f4',
+                    key: globalSettings.apiKeys.map,
                     location: userProfile.location,
                     s: 'rsx',
                 },
@@ -186,7 +188,7 @@ const main = async () => {
                     msg: message,
                 },
             },
-            'b908c85a410b8e262ae6788e17544a88'
+            globalSettings.apiKeys.qmsg
         )
         if (success) {
             logger.info(`信息 ${i + 1} 发信状态: 发信成功`)
