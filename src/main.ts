@@ -5,29 +5,23 @@ import { request } from './services/webApi'
 import { mstv } from './services/mstv'
 import { currentDate, DateLevel } from './utilities/currentDate'
 import { calendar } from './services/calendar'
-import { Account } from './domains/account'
 import { ClockForm } from './domains/clockForm'
+import { UserProfileType } from './domains/userProfile'
 
 const CONFIGURATION_FILE = '../../xfriend.config.json'
 const logger = LoggerFactory('Main')
-
-interface UserProfile {
-    enabled: boolean
-    enableForceClock: boolean
-    phoneNumber: string
-    cipherWord: string
-    location: string
-    deviceName: string
-}
 
 const main = async () => {
     // 提示 XFriend Auto 服务已启动
     logger.info(`XFriend Auto 服务启动`)
 
     // 获取 CONFIGURATION_FILE 中定义的配置
-    const userProfiles: UserProfile[] = readFile(
+    const userProfiles: UserProfileType[] = readFile(
         CONFIGURATION_FILE
-    ) as UserProfile[]
+    ) as UserProfileType[]
+
+    // 所有推送信息
+    const messages: string[] = []
 
     // 遍历 userProfiles 进行用户操作
     for (const userProfile of userProfiles) {
@@ -147,31 +141,34 @@ const main = async () => {
             logger.info(
                 `${loginer} ${currentMonth} 月的签到历史\n[${clockedDays} / ${daysInMonth}]\n${clockHistoryCalendar}`
             )
-
-            // TODO: 所有信息应该聚合到一个数组中，并且进行一次性发送，且每条信息五秒间隔
-            async function sendMessage() {
-                await new Promise(resolve => setTimeout(resolve, 6000))
-                const { success } = await request(
-                    'qmsg',
-                    'send',
-                    {
-                        params: {
-                            msg: `${loginer} (${clockedDays} / ${daysInMonth})\n${clockHistoryCalendar}`,
-                        },
-                    },
-                    'b908c85a410b8e262ae6788e17544a88'
-                )
-                if (success) {
-                    logger.info(`发信成功`)
-                } else {
-                    logger.info(`发信失败`)
-                }
-            }
-            await sendMessage()
+            const message = `${loginer} (${clockedDays} / ${daysInMonth})\n${clockHistoryCalendar}`
+            messages.push(message)
 
             logger.info(`${loginer}签到任务执行完成\n`)
         } else {
             logger.warn(`用户未开启签到`)
+        }
+    }
+
+    for (let i = 0; i < messages.length; i++) {
+        if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, 5500))
+        }
+        const message = messages[i]
+        const { success } = await request(
+            'qmsg',
+            'send',
+            {
+                params: {
+                    msg: message,
+                },
+            },
+            'b908c85a410b8e262ae6788e17544a88'
+        )
+        if (success) {
+            logger.info(`发信成功: ${message}`)
+        } else {
+            logger.info(`发信失败: ${message}`)
         }
     }
 }

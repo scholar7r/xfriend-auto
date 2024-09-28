@@ -1,5 +1,5 @@
 export interface UserProfileType {
-    enable: boolean
+    enabled: boolean
     enableForceClock: boolean
     phoneNumber: number
     cipherWord: string
