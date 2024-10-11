@@ -180,29 +180,35 @@ const main = async () => {
     }
 
     // 发送签到完成通知信息
-    for (let i = 0; i < messages.length; i++) {
-        // 首次发送信息不需要延迟，Qmsg 限制了每次请求需要延迟 5 秒
-        if (i > 0) {
-            await new Promise(resolve => setTimeout(resolve, 5500))
-        }
-        const message = messages[i]
-        const { success }: RequestResponse<{ success: boolean }> =
-            await request(
-                'qmsg',
-                'send',
-                {
-                    params: {
-                        msg: message,
+    const timeout = 6800
+    const sendMessages = async () => {
+        for (let i = 0; i < messages.length; i++) {
+            // 为第一次之后的所有发信添加等待时间
+            if (i > 0) {
+                await new Promise(resolve => setTimeout(resolve, timeout))
+            }
+            const message = messages[i]
+            const { success }: RequestResponse<{ success: boolean }> =
+                await request(
+                    'qmsg',
+                    'send',
+                    {
+                        params: {
+                            msg: message,
+                        },
                     },
-                },
-                globalSettings.apiKeys.qmsg
-            )
-        if (success) {
-            logger.info(`信息 ${i + 1} 发信状态: 发信成功`)
-        } else {
-            logger.info(`发信失败`)
+                    globalSettings.apiKeys.qmsg
+                )
+            if (success) {
+                logger.info(`信息 ${i + 1} 发信状态: 发信成功`)
+            } else {
+                logger.info(`信息 ${i + 1} 发信状态: 发信失败`)
+            }
         }
     }
+
+    // 等待所有信息发送完成
+    await sendMessages()
 }
 
 main().then(() => {
