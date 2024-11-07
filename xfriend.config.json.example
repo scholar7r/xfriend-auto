@@ -1,0 +1,26 @@
+{
+    "userProfiles": [
+        {
+            "enabled": true,
+            "enableForceClock": false,
+            "phoneNumber": "",
+            "cipherWord": "",
+            "location": "",
+            "deviceName": ""
+        },
+        {
+            "enabled": true,
+            "enableForceClock": false,
+            "phoneNumber": "",
+            "cipherWord": "",
+            "location": "",
+            "deviceName": ""
+        },
+    ],
+    "globalSettings": {
+        "apiKeys": {
+            "map": "c222383ff12d31b556c3ad6145bb95f4",
+            "qmsg": ""
+        }
+    }
+}
