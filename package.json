@@ -15,7 +15,7 @@
     "author": "scholar7r <scholar7r@outlook.com>",
     "license": "ISC",
     "devDependencies": {
-        "@eslint/js": "^9.15.0",
+        "@eslint/js": "^9.16.0",
         "eslint": "^9.15.0",
         "globals": "^15.13.0",
         "prettier": "^3.4.2",
