@@ -92,6 +92,7 @@ export const request = <T>(
             url,
         })
             .then(response => {
+                console.info(response.data)
                 resolve(response.data)
             })
             .catch(error => {

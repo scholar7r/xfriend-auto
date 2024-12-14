@@ -7,9 +7,11 @@ import { currentDate, DateLevel } from './utilities/currentDate'
 import { calendar, ClockHistoryEntry } from './services/calendar'
 import { ClockFormType } from './domains/clockForm'
 import { GlobalSettingsType, UserProfileType } from './domains/userProfile'
+import axios from 'axios'
 
 const CONFIGURATION_FILE = '../../xfriend.config.json'
 const logger = LoggerFactory('Main')
+axios.defaults.withCredentials = true
 
 const main = async () => {
     // 提示 XFriend Auto 服务已启动
@@ -28,24 +30,47 @@ const main = async () => {
     // 遍历 userProfiles 进行用户操作
     for (const userProfile of userProfiles) {
         // 登录获取 sessionId
-        const account: RequestResponse<{ sessionId: string }> = await request(
-            'traineePlatform',
-            'accountLogin',
-            {
+        // const account: RequestResponse<{ sessionId: string }> = await request(
+        //     'traineePlatform',
+        //     'accountLogin',
+        //     {
+        //         params: {
+        //             username: userProfile.phoneNumber,
+        //             password: createHash('md5')
+        //                 .update(userProfile.cipherWord)
+        //                 .digest('hex'),
+        //         },
+        //     }
+        // )
+        console.info(userProfile)
+        let sessionId = ''
+        const account = await axios
+            .request({
+                url: 'https://www.xybsyw.com/login/login.action',
                 params: {
                     username: userProfile.phoneNumber,
                     password: createHash('md5')
                         .update(userProfile.cipherWord)
                         .digest('hex'),
+                    loginType: 'NORMAL',
+                    userType: 'PERSON',
                 },
-            }
-        )
-        const { sessionId } = account.data
+            })
+            .then(response => {
+                sessionId =
+                    response.headers['set-cookie']
+                        ?.find(cookie => cookie.startsWith('JSESSIONID'))
+                        ?.split(';')[0] || ''
+                return response.data
+            })
+            .catch(error => console.error(error))
+        console.info(account)
+        // const { sessionId } = account.data
 
         logger.debug(`获取到用户的 Session 标识符为: ${sessionId}`)
 
         // 根据获取的 sessionId 拼接 cookie
-        const cookie = `JSESSIONID=${sessionId}`
+        const cookie = `${sessionId}`
 
         // 查询用户信息获取 loginer
         const accountDetail: RequestResponse<{ loginer: string }> =
